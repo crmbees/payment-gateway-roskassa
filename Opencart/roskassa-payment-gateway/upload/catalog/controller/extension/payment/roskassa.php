@@ -18,7 +18,7 @@ class ControllerExtensionPaymentRoskassa extends Controller
 			'amount'=>$data['m_amount'],
 			'currency'=>$data['m_curr'],
 			'order_id'=>$data['m_orderid'],
-			'test'=>1
+			'test'=>0
 		);
 		ksort($data1);
 		$str = http_build_query($data1);
@@ -59,40 +59,8 @@ class ControllerExtensionPaymentRoskassa extends Controller
 				file_put_contents($_SERVER['DOCUMENT_ROOT'] . $log_file, $log_text, FILE_APPEND);
 			}
 
-			// проверка ip
-
-			$sIP = str_replace(' ', '', $this->config->get('payment_roskassa_list_ip'));
-			$valid_ip = true;
-			if ( ! empty( $sIP ) ) {
-
-				$ip_filter_arr = explode(',', $sIP);
-				$this_ip  = (isset($_SERVER['HTTP_X_REAL_IP'])) ? $_SERVER['HTTP_X_REAL_IP'] : $_SERVER['REMOTE_ADDR'];
-
-				foreach ( $ip_filter_arr as $key => $value ) {
-					$ip_filter_arr[ $key ] = ip2long( $value );
-				}
-
-				if ( ! in_array( ip2long($this_ip), $ip_filter_arr)) {
-					$valid_ip = false;
-				}
-
-			}
-
-			if (!$valid_ip)
-			{
-				$message .= $this->language->get('text_email_message4') . "\n" .
-				$this->language->get('text_email_message5') . $sIP . "\n" .
-				$this->language->get('text_email_message6') . $_SERVER['REMOTE_ADDR'] . "\n";
-				$err = true;
-			}
-
-			$data = array(
-				'shop_id'=>$request['shop_id'],
-				'amount'=>$request['amount'],
-				'currency'=>$request['currency'],
-				'order_id'=>$request['order_id'],
-			);
-
+			$data = $_POST;
+			unset($data['sign']);
 			ksort($data);
 			$str = http_build_query($data);
 			$sign_hash = md5($str . $this->config->get('payment_roskassa_security'));
